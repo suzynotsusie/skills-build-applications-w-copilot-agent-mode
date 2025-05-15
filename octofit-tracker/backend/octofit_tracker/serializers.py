@@ -10,39 +10,40 @@ class ObjectIdField(serializers.Field):
         return ObjectId(data)
 
 class UserSerializer(serializers.ModelSerializer):
-    _id = ObjectIdField()
+    _id = ObjectIdField(required=False)
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['_id', 'username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
 
 class TeamSerializer(serializers.ModelSerializer):
-    _id = ObjectIdField()
-    members = UserSerializer(many=True)
+    _id = ObjectIdField(required=False)
+    members = UserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Team
-        fields = '__all__'
+        fields = ['_id', 'name', 'members']
 
 class ActivitySerializer(serializers.ModelSerializer):
-    _id = ObjectIdField()
-    user = ObjectIdField()
+    _id = ObjectIdField(required=False)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Activity
-        fields = '__all__'
+        fields = ['_id', 'user', 'activity_type', 'duration', 'date']
 
 class LeaderboardSerializer(serializers.ModelSerializer):
-    _id = ObjectIdField()
-    user = UserSerializer()  # Expand the user object
+    _id = ObjectIdField(required=False)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Leaderboard
-        fields = '__all__'
+        fields = ['_id', 'user', 'score', 'last_updated']
 
 class WorkoutSerializer(serializers.ModelSerializer):
-    _id = ObjectIdField()
+    _id = ObjectIdField(required=False)
 
     class Meta:
         model = Workout
-        fields = '__all__'
+        fields = ['_id', 'name', 'description', 'difficulty', 'duration']

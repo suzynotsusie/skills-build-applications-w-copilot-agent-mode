@@ -1,8 +1,28 @@
-from rest_framework import viewsets
-from .models import User, Team, Activity, Leaderboard, Workout
-from .serializers import UserSerializer, TeamSerializer, ActivitySerializer, LeaderboardSerializer, WorkoutSerializer
-from django.http import JsonResponse
+from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from django.conf import settings
+from .models import User, Team, Activity, Leaderboard, Workout
+from .serializers import (
+    UserSerializer, TeamSerializer, ActivitySerializer,
+    LeaderboardSerializer, WorkoutSerializer
+)
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    # Get the current host from the request
+    host = request.get_host()
+    protocol = 'https' if request.is_secure() else 'http'
+    base_url = f"{protocol}://{host}"
+    
+    return Response({
+        'users': f"{base_url}/api/users/",
+        'teams': f"{base_url}/api/teams/",
+        'activities': f"{base_url}/api/activities/",
+        'leaderboard': f"{base_url}/api/leaderboard/",
+        'workouts': f"{base_url}/api/workouts/",
+    })
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -16,6 +36,9 @@ class ActivityViewSet(viewsets.ModelViewSet):
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 class LeaderboardViewSet(viewsets.ModelViewSet):
     queryset = Leaderboard.objects.all()
     serializer_class = LeaderboardSerializer
@@ -23,14 +46,3 @@ class LeaderboardViewSet(viewsets.ModelViewSet):
 class WorkoutViewSet(viewsets.ModelViewSet):
     queryset = Workout.objects.all()
     serializer_class = WorkoutSerializer
-
-@api_view(['GET'])
-def api_root(request, format=None):
-    base_url = 'https://[REPLACE-THIS-WITH-YOUR-CODESPACE-NAME]-8000.app.github.dev/'
-    return JsonResponse({
-        'users': base_url + 'api/users/',
-        'teams': base_url + 'api/teams/',
-        'activities': base_url + 'api/activities/',
-        'leaderboard': base_url + 'api/leaderboard/',
-        'workouts': base_url + 'api/workouts/'
-    })
